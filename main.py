@@ -1,12 +1,10 @@
 from typing import List
-
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
-
-# from . import crud, models, schemas
-from crud import IngestionApi, TransformationApi, DataQueryApi
+from ingestion import IngestionApi
 import models, schemas
-
+from transformations import TransformationApi
+from dataAvailability import DataQueryApi
 from database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
@@ -59,7 +57,6 @@ def ingestFile(file_path: str, table_name_to_ingest: str):
     return "Data successfully Ingested"
 
 
-
 @app.get("/ingestListFiles", tags=["Ingestion"])
 def ingestListFiles(dirname: str, file_format: str, table_name_to_ingest: str):
     """
@@ -96,10 +93,16 @@ def lowerCase(tablename: str, column_to_lowercase: str, where_condition: str = N
 
     - tablename
     - column_to_lowercase
-    - where_condition (None can also be given)
+    - where_condition  : can be not specified also
+        - (if where condition is None it will update entire Table wherever applicable)
     """
     transformation = TransformationApi(engine)
-    return transformation.lower(tablename, column_to_lowercase, where_condition=where_condition)
+    try:
+        transformation.lower(tablename, column_to_lowercase, where_condition=where_condition)
+    except Exception as e:
+        return {"data": f"Error occured in the ingesting the file - {e}"}
+
+    return "Data Successfully Inserted"
 
 
 @app.post("/trim", tags=["Transformations"])
@@ -109,14 +112,19 @@ def trimming(tablename: str, column_to_trim: str, where_condition: str = None):
 
     - tablename
     - column_to_lowercase
-    - where_condition (None can also be given)
+    - where_condition  : can be not specified also
+        - (if where condition is None it will update entire Table wherever applicable)
     """
     transformation = TransformationApi(engine)
-    return transformation.trim(tablename, column_to_trim, where_condition=where_condition)
+    try:
+        transformation.trim(tablename, column_to_trim, where_condition=where_condition)
+    except Exception as e:
+        return {"data": f"Error occured in the ingesting the file - {e}"}
+    return "Data Successfully Inserted"
 
 
 @app.post("/updateTable", tags=["Transformations"])
-def updateTable(tablename: str, data: List[dict],):
+def updateTable(tablename: str, data: List[dict], ):
     """
     Update the Table (this API can be used to update the table using modified (trimmed/formatted)
     data into database (from third party Applications)
@@ -157,11 +165,11 @@ def updateTable(tablename: str, data: List[dict],):
     ```
     """
     transformation = TransformationApi(engine)
-    try :
+    try:
         transformation.updateTable(data, tablename=tablename)
     except Exception as e:
-        return {"data":f"Error Ocuured while updating the Table - {e}"}
-    return {"data":"Successfully updated"}
+        return {"data": f"Error Ocuured while updating the Table - {e}"}
+    return {"data": "Successfully updated"}
 
 
 @app.get("/listTables", tags=["DataAvailability"])
@@ -181,11 +189,12 @@ def query_data(sql_query: str):
     example :
      - "select * from {table_name} limit 5"
      - "select * from test limit 5"
+     - select * from fetchTickers limit 5
+
     """
     dataq = DataQueryApi(engine)
-    try :
-        res =dataq.execute_sql(sql_query)
+    try:
+        res = dataq.execute_sql(sql_query)
     except Exception as e:
-        return {"data":f"Error Occured while Querying the data - {e}"}
+        return {"data": f"Error Occured while Querying the data - {e}"}
     return res
-

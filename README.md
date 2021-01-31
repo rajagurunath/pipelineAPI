@@ -17,6 +17,15 @@
 
 - Data availability
 
+## Architecture 
+
+##  Design / Architecture (synchronous)
+
+![](design.PNG)
+
+## Async Architecture (Multiprocessing)
+
+![](asyncArch.PNG)
 
 ## Ingestion 
 

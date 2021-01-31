@@ -1,0 +1,1 @@
+{"id":"1e142165-a0bd-4bef-9b90-bd3fdc0ad5f1","space":2541,"runtime":"python3.7","name":"demo_micro","path":"agy47b","project":"a001fft2","account":"144798365827","region":"ap-southeast-1","deps":["numpy","pandas","fastapi","uvicorn","sqlalchemy"],"envs":null,"public":true,"log_level":"debug","cron":"","reload_deps":false}
